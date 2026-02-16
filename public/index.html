@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Past Papers Downloader</title>
+<style>
+body {
+    background: #0d0d0d;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+    padding: 20px;
+}
+input {
+    padding: 10px;
+    width: 300px;
+    border-radius: 8px;
+    border: none;
+}
+button {
+    padding: 10px 20px;
+    margin-left: 5px;
+    background: #ff0055;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.card {
+    background: #1a1a1a;
+    padding: 15px;
+    margin: 10px auto;
+    border-radius: 10px;
+    max-width: 600px;
+    text-align: left;
+}
+a {
+    color: #00ffff;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<h1>📚 Past Papers Downloader</h1>
+
+<input type="text" id="search" placeholder="Search past papers...">
+<button onclick="search()">Search</button>
+
+<div id="results"></div>
+
+<script>
+async function search() {
+    const query = document.getElementById('search').value;
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    const container = document.getElementById('results');
+    container.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p>No results found.</p>';
+        return;
+    }
+
+    data.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <h3>${item.title}</h3>
+            ${item.image ? `<img src="${item.image}" style="max-width:100px;">` : ''}
+            <p><a href="#" onclick="getDetails('${item.url}')">View Downloads</a></p>
+        `;
+        container.appendChild(card);
+    });
+}
+
+async function getDetails(url) {
+    const res = await fetch(`/api/details?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+
+    if (!data || !data.downloadLinks || data.downloadLinks.length === 0) {
+        alert('No download links found.');
+        return;
+    }
+
+    let links = 'Download Links:\n';
+    data.downloadLinks.forEach(link => {
+        links += `${link.text}: ${link.url}\n`;
+        window.open(link.url, '_blank');
+    });
+    console.log(links);
+}
+</script>
+
+</body>
+</html>
